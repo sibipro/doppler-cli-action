@@ -1,25 +1,26 @@
-const core = require('@actions/core');
-const tc = require('@actions/tool-cache');
-const io = require('@actions/io');
-const { execSync } = require('child_process');
+const core = require("@actions/core");
+const tc = require("@actions/tool-cache");
+const io = require("@actions/io");
+const { execSync } = require("child_process");
 
 const workspace = process.env.GITHUB_WORKSPACE;
 const binDir = `${workspace}/bin`;
 
-run().catch(error => {
+run().catch((error) => {
   core.setFailed(error.message);
-})
+});
 
 async function run() {
   switch (process.platform) {
     case "win32": {
-      const url = 'https://cli.doppler.com/download?os=windows&arch=amd64&format=zip';
+      const url =
+        "https://cli.doppler.com/download?os=windows&arch=amd64&format=zip";
       await installZip(binDir, url);
       break;
     }
     case "linux":
     case "darwin": {
-      await executeInstallSh(binDir)
+      await executeInstallSh(binDir);
       break;
     }
     default: {
@@ -37,15 +38,17 @@ async function installZip(path, url) {
 
 async function executeInstallSh(installPath) {
   // download script
-  const url = "https://cli.doppler.com/install.sh";
+  const url =
+    "https://github.com/DopplerHQ/cli/releases/download/3.75.0/doppler_3.75.0_linux_amd64.deb";
   const downloadPath = await tc.downloadTool(url);
   execSync(`chmod +x ${downloadPath}`);
+  execSync(`dpkg -i ${downloadPath}`);
 
   // execute script
-  await io.mkdirP(installPath);
-  const installCommand = `${downloadPath} --debug --no-package-manager --install-path ${installPath}`
-  stdout = execSync(installCommand, { timeout: 30000 });
-  console.log(Buffer.from(stdout).toString("utf-8"))
+  // await io.mkdirP(installPath);
+  // const installCommand = `${downloadPath} --debug --no-package-manager --install-path ${installPath}`;
+  // stdout = execSync(installCommand, { timeout: 30000 });
+  // console.log(Buffer.from(stdout).toString("utf-8"));
 
   // add binary to PATH
   core.addPath(installPath);
